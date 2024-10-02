@@ -2,55 +2,78 @@ package com.example.coroutinetest.ui
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.example.coroutinetest.R
-import com.example.coroutinetest.manager.EventObserver
+import com.example.coroutinetest.worker.WorkerImp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import java.util.Timer
-import java.util.TimerTask
-import kotlin.random.Random
 
 class HotStreamActivity : AppCompatActivity(R.layout.activity_main) {
-    private val workList = mutableListOf<Thread>()
-    private val timer = Timer()
+    private var viewModel: HotStreamViewModel? = null
+    private val TAG = javaClass.simpleName
+    private val worker: WorkerImp = WorkerImp(Dispatchers.IO)
 
-    private fun test() {
-        for (index in 0..4) {
-            val target = Thread {
-                runBlocking(Dispatchers.Default) {
-                    EventObserver.eventSubscriber.collect { event ->
-                        Log.d(
-                            "SampleActivity12341234",
-                            "threadId = $index, id = ${event.id}, data = ${event.data}"
-                        )
-                    }
-                }
-            }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        initViewModel()
 
-            workList.add(target)
-            target.start()
-        }
-
-        Log.d("SampleActivity12341234", "workList size = ${workList.size}")
-
-        val task = object : TimerTask() {
-            override fun run() {
-                CoroutineScope(Dispatchers.Default).launch {
-                    val id = Random.nextInt(0, 999)
-                    Log.d("SampleActivity12341234", "send event id = $id")
-                    EventObserver.eventPublisher.tryEmit(
-                        EventObserver.Event(
-                            id.toString(),
-                            Bundle()
-                        )
-                    )
-                }
+        CoroutineScope(Dispatchers.Default).launch {
+            viewModel!!.channelItem.consumeEach { user ->
+                Log.d(TAG, "초기테스트 user = $user")
             }
         }
 
-        timer.schedule(task, 0, 10000)
+        findViewById<Button>(R.id.btLoadInfo).setOnClickListener {
+            Log.d(TAG, "initEvent start")
+            initEvent()
+        }
+
+        findViewById<Button>(R.id.btRandomTest).setOnClickListener {
+            Log.d(TAG, "worker start")
+            //Worker 초기화
+            worker
+                .many(1)
+                .interval(1000)
+                .job {
+                    viewModel!!.receiveEventUser()
+                }.work()
+        }
     }
+
+    private fun initViewModel() {
+        viewModel = ViewModelProvider(
+            this,
+            HotStreamViewModel.ViewModelFactory(application)
+        )[HotStreamViewModel::class.java]
+    }
+
+    private fun initEvent() {
+        for (count in 0..10) {
+            CoroutineScope(Dispatchers.Default).launch {
+                viewModel!!.flowChannelItem.collect { user ->
+                    Log.d(TAG, "flowChannelItem$count user = $user")
+                }
+            }
+        }
+
+        /*for (count in 0..10) {
+            CoroutineScope(Dispatchers.IO).launch {
+                viewModel!!.sharedFlowItem.collect { user ->
+                    Log.d(TAG, "sharedFlowItem$count user = $user")
+                }
+            }
+        }*/
+
+        /*CoroutineScope(Dispatchers.Default).launch {
+            viewModel!!.sharedFlowItem.collect { user ->
+                Log.d(TAG, "sharedFlowItem user = $user")
+            }
+        }*/
+    }
+
 }
