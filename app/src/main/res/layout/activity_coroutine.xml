@@ -19,4 +19,28 @@
         android:layout_height="wrap_content"
         android:text="테스트 launch" />
 
+    <Button
+        android:id="@+id/btMultiWithContext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="테스트 다중 withContext " />
+
+    <Button
+        android:id="@+id/btMultiAsync"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="테스트 다중 async" />
+
+    <Button
+        android:id="@+id/btErrorWithContext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="테스트 withContext 에러" />
+
+    <Button
+        android:id="@+id/btErrorAsync"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="테스트 async 에러" />
+
 </LinearLayout>
