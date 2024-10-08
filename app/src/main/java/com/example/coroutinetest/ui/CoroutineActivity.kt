@@ -6,6 +6,7 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.coroutinetest.R
+import com.example.coroutinetest.worker.WorkerImp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -21,6 +22,7 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
         )[CoroutineViewModel::class.java]
     }
     private val TAG = javaClass.simpleName
+    private val worker: WorkerImp = WorkerImp(Dispatchers.IO)
     private val ioDispatcher = Dispatchers.IO
     private val defaultDispatcher = Dispatchers.Default
     private val mainDispatcher = Dispatchers.Main
@@ -197,7 +199,7 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
     )
 
     private fun testFlowRunningFold() {
-        CoroutineScope(defaultDispatcher).launch {
+        /*CoroutineScope(defaultDispatcher).launch {
             val randomIsLoading = Random.nextBoolean()
             val randomTestIndex = Random.nextInt(0, 10)
             val data = mutableListOf<String>()
@@ -208,7 +210,25 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
                 }
             }
             viewModel.channelItem.trySend(State(randomIsLoading, data))
-        }
+        }*/
+
+        worker
+            .many(10)
+            .interval(1000)
+            .job {
+                val randomIsLoading = Random.nextBoolean()
+                val randomTestIndex = Random.nextInt(0, 100)
+                val data = mutableListOf<String>()
+
+                if (randomTestIndex > 1) {
+                    for (index in 0..randomTestIndex) {
+                        data.add("Test$index")
+                    }
+                }
+                val createState = State(randomIsLoading, data)
+                val result = viewModel.sendChannelItem(State(randomIsLoading, data))
+                Log.d(TAG, "testErrorAsync createState = $createState, isSuccess = ${result.isSuccess}")
+            }.work()
     }
 
 }
