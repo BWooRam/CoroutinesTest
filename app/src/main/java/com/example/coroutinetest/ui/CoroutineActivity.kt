@@ -4,15 +4,22 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.example.coroutinetest.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.lang.NullPointerException
+import kotlin.random.Random
 
 class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
+    private val viewModel: CoroutineViewModel by lazy {
+        ViewModelProvider(
+            this,
+            CoroutineViewModel.ViewModelFactory(application)
+        )[CoroutineViewModel::class.java]
+    }
     private val TAG = javaClass.simpleName
     private val ioDispatcher = Dispatchers.IO
     private val defaultDispatcher = Dispatchers.Default
@@ -20,6 +27,11 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        CoroutineScope(defaultDispatcher).launch {
+            viewModel.state.collect { state ->
+                Log.d(TAG, "viewModel state = $state")
+            }
+        }
 
         findViewById<Button>(R.id.btLaunch).setOnClickListener {
             testLaunch()
@@ -39,6 +51,9 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
         findViewById<Button>(R.id.btErrorAsync).setOnClickListener {
             testErrorAsync()
         }
+        findViewById<Button>(R.id.btTestFlowRunningFold).setOnClickListener {
+            testFlowRunningFold()
+        }
     }
 
     private fun testLaunch() {
@@ -51,14 +66,23 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
         CoroutineScope(mainDispatcher).launch {
             Log.d(TAG, "testWithContext launch outer Thread Name = ${Thread.currentThread().name}")
             val result1 = withContext(ioDispatcher) {
-                Log.d(TAG, "testWithContext launch inner Thread Name = ${Thread.currentThread().name}")
+                Log.d(
+                    TAG,
+                    "testWithContext launch inner Thread Name = ${Thread.currentThread().name}"
+                )
                 "test1"
             }
 
             val deferred = CoroutineScope(mainDispatcher).async {
-                Log.d(TAG, "testWithContext async outer Thread Name = ${Thread.currentThread().name}")
+                Log.d(
+                    TAG,
+                    "testWithContext async outer Thread Name = ${Thread.currentThread().name}"
+                )
                 withContext(ioDispatcher) {
-                    Log.d(TAG, "testWithContext async inner Thread Name = ${Thread.currentThread().name}")
+                    Log.d(
+                        TAG,
+                        "testWithContext async inner Thread Name = ${Thread.currentThread().name}"
+                    )
                 }
                 return@async "test2"
             }
@@ -73,11 +97,17 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
     private fun testMultiWithContext() {
         CoroutineScope(mainDispatcher).launch {
             val result1 = withContext(ioDispatcher) {
-                Log.d(TAG, "testMultiWithContext withContext Thread Name = ${Thread.currentThread().name}")
+                Log.d(
+                    TAG,
+                    "testMultiWithContext withContext Thread Name = ${Thread.currentThread().name}"
+                )
                 "test1"
             }
             val result2 = withContext(ioDispatcher) {
-                Log.d(TAG, "testMultiWithContext withContext Thread Name = ${Thread.currentThread().name}")
+                Log.d(
+                    TAG,
+                    "testMultiWithContext withContext Thread Name = ${Thread.currentThread().name}"
+                )
                 "test2"
             }
 
@@ -89,12 +119,18 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
     private fun testMultiAsync() {
         CoroutineScope(mainDispatcher).launch {
             val deferred1 = CoroutineScope(mainDispatcher).async {
-                Log.d(TAG, "testMultiAsync launch inner Thread Name = ${Thread.currentThread().name}")
+                Log.d(
+                    TAG,
+                    "testMultiAsync launch inner Thread Name = ${Thread.currentThread().name}"
+                )
                 "test1"
             }
 
             val deferred2 = CoroutineScope(mainDispatcher).async {
-                Log.d(TAG, "testMultiAsync launch inner Thread Name = ${Thread.currentThread().name}")
+                Log.d(
+                    TAG,
+                    "testMultiAsync launch inner Thread Name = ${Thread.currentThread().name}"
+                )
                 "test2"
             }
 
@@ -136,7 +172,7 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
                     throw NullPointerException("testErrorAsync result1 NullPointerException")
                 }
                 deferred.await()
-            }.onSuccess {  result ->
+            }.onSuccess { result ->
                 Log.d(TAG, "testErrorAsync onSuccess result1 = $result")
             }.onFailure { e ->
                 Log.d(TAG, "testErrorAsync onFailure result1 e = $e")
@@ -147,11 +183,32 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
                     throw NullPointerException("testErrorAsync result2 NullPointerException")
                 }
                 deferred.await()
-            }.onSuccess {  result ->
+            }.onSuccess { result ->
                 Log.d(TAG, "testErrorAsync onSuccess result2 = $result")
             }.onFailure { e ->
                 Log.d(TAG, "testErrorAsync onFailure result2 e = $e")
             }
         }
     }
+
+    data class State(
+        val isLoading: Boolean = false,
+        val data: List<String> = arrayListOf()
+    )
+
+    private fun testFlowRunningFold() {
+        CoroutineScope(defaultDispatcher).launch {
+            val randomIsLoading = Random.nextBoolean()
+            val randomTestIndex = Random.nextInt(0, 10)
+            val data = mutableListOf<String>()
+
+            if (randomTestIndex > 1) {
+                for (index in 0..randomTestIndex) {
+                    data.add("Test$index")
+                }
+            }
+            viewModel.channelItem.trySend(State(randomIsLoading, data))
+        }
+    }
+
 }
