@@ -1,4 +1,4 @@
-package com.example.coroutinetest.ui
+package com.example.coroutinetest.ui.hotstream
 
 import android.os.Bundle
 import android.util.Log
@@ -10,7 +10,6 @@ import com.example.coroutinetest.worker.WorkerImp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class HotStreamActivity : AppCompatActivity(R.layout.activity_main) {

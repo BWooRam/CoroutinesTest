@@ -1,4 +1,4 @@
-package com.example.coroutinetest.ui
+package com.example.coroutinetest.ui.common
 
 import android.app.Application
 import android.util.Log
@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -22,8 +24,12 @@ import java.util.Date
 class CoroutineViewModel(
     application: Application
 ) : AndroidViewModel(application) {
+    private val TAG = javaClass.simpleName
     private val channelItem: Channel<CoroutineActivity.State> =
-        Channel<CoroutineActivity.State>(capacity = Channel.BUFFERED, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+        Channel<CoroutineActivity.State>(
+            capacity = Channel.BUFFERED,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
+        )
     val state: StateFlow<CoroutineActivity.State> by lazy {
         val initialState = CoroutineActivity.State()
         channelItem
@@ -38,8 +44,19 @@ class CoroutineViewModel(
             )
     }
 
-    private val syncObject = Any()
+    private val syncMutex = Mutex()
+    suspend fun sendMutexChannelItem(state: CoroutineActivity.State): ChannelResult<Unit> {
+        val mutexResult = syncMutex.withLock {
+            val result = channelItem.trySend(state)
 
+            val time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(Date(System.currentTimeMillis()))
+            Log.d(TAG, "sendMutexChannelItem result isSuccess = ${result.isSuccess}, time = $time")
+            result
+        }
+        return mutexResult
+    }
+
+    private val syncObject = Any()
     @Synchronized
     fun sendChannelItem(state: CoroutineActivity.State): ChannelResult<Unit> {
         val result = synchronized(syncObject) {

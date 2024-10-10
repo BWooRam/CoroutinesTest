@@ -14,7 +14,17 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".ui.CoroutineActivity"
+            android:name=".ui.common.CoroutineActivity"
+            android:exported="true">
+            <!--<intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>-->
+        </activity>
+
+        <activity
+            android:name=".ui.CoroutineThreadSafeActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -34,7 +44,7 @@
         </activity>
 
         <activity
-            android:name=".ui.HotStreamActivity"
+            android:name=".ui.hotstream.HotStreamActivity"
             android:exported="true">
             <!--<intent-filter>
                 <action android:name="android.intent.action.MAIN" />

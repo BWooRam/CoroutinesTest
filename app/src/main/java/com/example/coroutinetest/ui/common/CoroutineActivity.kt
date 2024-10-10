@@ -1,4 +1,4 @@
-package com.example.coroutinetest.ui
+package com.example.coroutinetest.ui.common
 
 import android.os.Bundle
 import android.util.Log

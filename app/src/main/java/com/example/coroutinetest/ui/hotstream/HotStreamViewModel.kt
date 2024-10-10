@@ -1,32 +1,20 @@
-package com.example.coroutinetest.ui
+package com.example.coroutinetest.ui.hotstream
 
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
 import com.example.coroutinetest.data.User
 import com.example.coroutinetest.data.UserDetail
-import com.example.coroutinetest.data.api.PostService
-import com.example.coroutinetest.data.api.ServiceBuilder
-import com.example.coroutinetest.data.api.UserService
-import com.example.coroutinetest.data.repository.PostRepositoryImp
-import com.example.coroutinetest.data.repository.UserRepositoryImp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 
