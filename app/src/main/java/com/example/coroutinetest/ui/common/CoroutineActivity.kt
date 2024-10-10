@@ -226,8 +226,13 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
                     }
                 }
                 val createState = State(randomIsLoading, data)
-                val result = viewModel.sendChannelItem(State(randomIsLoading, data))
-                Log.d(TAG, "testErrorAsync createState = $createState, isSuccess = ${result.isSuccess}")
+                /*val result = viewModel.sendChannelItem(State(randomIsLoading, data))
+                Log.d(TAG, "testErrorAsync createState = $createState, isSuccess = ${result.isSuccess}")*/
+
+                CoroutineScope(ioDispatcher).launch {
+                    val result = viewModel.sendMutexChannelItem(State(randomIsLoading, data))
+                    Log.d(TAG, "testErrorAsync createState = $createState, isSuccess = ${result.isSuccess}")
+                }
             }.work()
     }
 
