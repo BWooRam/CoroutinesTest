@@ -35,9 +35,17 @@ class RestartStateFlowActivity : AppCompatActivity(R.layout.activity_restart) {
             }
         }
 
-        findViewById<Button>(R.id.btRetry).setOnClickListener {
+        findViewById<Button>(R.id.btWorkStart).setOnClickListener {
             testFlowRunningFold()
         }
+
+        findViewById<Button>(R.id.btRestart).setOnClickListener {
+            testRestart()
+        }
+    }
+
+    private fun testRestart() {
+        viewModel.state.restart()
     }
 
     private fun testFlowRunningFold() {
@@ -55,8 +63,11 @@ class RestartStateFlowActivity : AppCompatActivity(R.layout.activity_restart) {
                     }
                 }
                 val createState = State(randomIsLoading, data)
-                val result = viewModel.channelItem.trySend(State(randomIsLoading, data))
-                Log.d(TAG, "testFlowRunningFold createState = $createState, isSuccess = ${result.isSuccess}")
+
+                CoroutineScope(ioDispatcher).launch {
+                    val result = viewModel.sendMutexChannelItem(State(randomIsLoading, data))
+                    Log.d(TAG, "testFlowRunningFold createState = $createState, isSuccess = ${result.isSuccess}")
+                }
             }.work()
     }
 }
