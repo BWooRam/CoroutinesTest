@@ -6,10 +6,20 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.coroutinetest.R
+import com.example.coroutinetest.data.State
+import com.example.coroutinetest.data.User
 import com.example.coroutinetest.worker.WorkerImp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingCommand
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.random.Random
@@ -30,8 +40,27 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         CoroutineScope(defaultDispatcher).launch {
+
             viewModel.state.collect { state ->
-                Log.d(TAG, "viewModel state = $state")
+                Log.d(TAG, "collect1 viewModel state = $state")
+            }
+        }
+
+        CoroutineScope(defaultDispatcher).launch {
+            viewModel.state.collect { state ->
+                Log.d(TAG, "collect2 viewModel state = $state")
+            }
+        }
+
+        CoroutineScope(defaultDispatcher).launch {
+            viewModel.state.collect { state ->
+                Log.d(TAG, "collect3 viewModel state = $state")
+            }
+        }
+
+        CoroutineScope(defaultDispatcher).launch {
+            viewModel.state.collect { state ->
+                Log.d(TAG, "collect4 viewModel state = $state")
             }
         }
 
@@ -55,6 +84,15 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
         }
         findViewById<Button>(R.id.btTestFlowRunningFold).setOnClickListener {
             testFlowRunningFold()
+        }
+        findViewById<Button>(R.id.btTestFlowMerge).setOnClickListener {
+            testFlowMerge()
+        }
+        findViewById<Button>(R.id.btTestFlowZip).setOnClickListener {
+            testFlowZip()
+        }
+        findViewById<Button>(R.id.btTestFlowCombine).setOnClickListener {
+            testFlowCombine()
         }
     }
 
@@ -193,11 +231,6 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
         }
     }
 
-    data class State(
-        val isLoading: Boolean = false,
-        val data: List<String> = arrayListOf()
-    )
-
     private fun testFlowRunningFold() {
         /*CoroutineScope(defaultDispatcher).launch {
             val randomIsLoading = Random.nextBoolean()
@@ -213,7 +246,7 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
         }*/
 
         worker
-            .many(10)
+            .many(3)
             .interval(1000)
             .job {
                 val randomIsLoading = Random.nextBoolean()
@@ -226,14 +259,57 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
                     }
                 }
                 val createState = State(randomIsLoading, data)
+                //방법 1
                 /*val result = viewModel.sendChannelItem(State(randomIsLoading, data))
                 Log.d(TAG, "testErrorAsync createState = $createState, isSuccess = ${result.isSuccess}")*/
 
-                CoroutineScope(ioDispatcher).launch {
+                //방법 2
+                /*CoroutineScope(ioDispatcher).launch {
                     val result = viewModel.sendMutexChannelItem(State(randomIsLoading, data))
                     Log.d(TAG, "testErrorAsync createState = $createState, isSuccess = ${result.isSuccess}")
-                }
+                }*/
+
+                //방법 3
+                val result = viewModel.channelItem.trySend(State(randomIsLoading, data))
+                Log.d(
+                    TAG,
+                    "testErrorAsync createState = $createState, isSuccess = ${result.isSuccess}"
+                )
             }.work()
     }
 
+    private val flow1 = flowOf<Char>('a', 'b', 'c', 'd', 'e').onEach { delay(400) }
+    private val flow2 = flowOf<Int>(1, 2, 3, 4).onEach { delay(1000) }
+
+    private fun testFlowMerge() {
+        CoroutineScope(defaultDispatcher).launch {
+            val flowMerge = merge(flow1, flow2)
+            Log.d(TAG, "testFlowMerge value = ${flowMerge.toList()}")
+            flowMerge.collect { value ->
+                Log.d(TAG, "testFlowMerge value = $value")
+            }
+        }
+    }
+
+    private fun testFlowZip() {
+        CoroutineScope(defaultDispatcher).launch {
+            flow1.zip(flow2) { t1, t2 ->
+                Log.d(TAG, "testFlowZip t1 = $t1, t2 = $t2")
+                return@zip (t1 + t2).code
+            }.collect { value ->
+                Log.d(TAG, "testFlowZip value = $value")
+            }
+        }
+    }
+
+    private fun testFlowCombine() {
+        CoroutineScope(defaultDispatcher).launch {
+            combine(flow2, flow1) { t1, t2 ->
+                Log.d(TAG, "testFlowCombine t1 = $t1, t2 = $t2")
+                return@combine t1 + t2.code
+            }.collect { value ->
+                Log.d(TAG, "testFlowCombine value = $value")
+            }
+        }
+    }
 }

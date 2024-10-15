@@ -1,51 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".ui.MainActivity">
+    android:fillViewport="true">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".ui.MainActivity">
 
-    <Button
-        android:id="@+id/btWithContext"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="테스트 withContext" />
+        <Button
+            android:id="@+id/btWithContext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="테스트 withContext" />
 
-    <Button
-        android:id="@+id/btLaunch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="테스트 launch" />
+        <Button
+            android:id="@+id/btLaunch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="테스트 launch" />
 
-    <Button
-        android:id="@+id/btMultiWithContext"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="테스트 다중 withContext " />
+        <Button
+            android:id="@+id/btMultiWithContext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="테스트 다중 withContext " />
 
-    <Button
-        android:id="@+id/btMultiAsync"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="테스트 다중 async" />
+        <Button
+            android:id="@+id/btMultiAsync"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="테스트 다중 async" />
 
-    <Button
-        android:id="@+id/btErrorWithContext"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="테스트 withContext 에러" />
+        <Button
+            android:id="@+id/btErrorWithContext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="테스트 withContext 에러" />
 
-    <Button
-        android:id="@+id/btErrorAsync"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="테스트 async 에러" />
+        <Button
+            android:id="@+id/btErrorAsync"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="테스트 async 에러" />
 
-    <Button
-        android:id="@+id/btTestFlowRunningFold"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="테스트 FlowRunningFold" />
-</LinearLayout>
+        <Button
+            android:id="@+id/btTestFlowRunningFold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="테스트 FlowRunningFold" />
+
+        <Button
+            android:id="@+id/btTestFlowMerge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="테스트 FlowMerge" />
+
+        <Button
+            android:id="@+id/btTestFlowZip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="테스트 FlowZip" />
+
+        <Button
+            android:id="@+id/btTestFlowCombine"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="테스트 FlowCombine" />
+    </LinearLayout>
+</ScrollView>

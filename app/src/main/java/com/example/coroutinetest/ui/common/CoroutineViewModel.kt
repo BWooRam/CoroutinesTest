@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.coroutinetest.data.State
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
@@ -25,27 +26,28 @@ class CoroutineViewModel(
     application: Application
 ) : AndroidViewModel(application) {
     private val TAG = javaClass.simpleName
-    private val channelItem: Channel<CoroutineActivity.State> =
-        Channel<CoroutineActivity.State>(
-            capacity = Channel.BUFFERED,
-            onBufferOverflow = BufferOverflow.DROP_OLDEST
-        )
-    val state: StateFlow<CoroutineActivity.State> by lazy {
-        val initialState = CoroutineActivity.State()
+    val channelItem: Channel<State> = Channel(
+        capacity = Channel.UNLIMITED,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+        onUndeliveredElement = { state ->
+        Log.d(TAG, "onUndeliveredElement state = $state")
+    })
+    val sharingStarted = SharingStarted.WhileSubscribed()
+    val state: StateFlow<State> by lazy {
+        val initialState = State()
         channelItem
             .receiveAsFlow()
             .runningFold(initialState) { acc, value ->
                 acc.copy(isLoading = value.isLoading, data = value.data)
-            }
-            .stateIn(
-                scope = CoroutineScope(Dispatchers.IO),
-                started = SharingStarted.Eagerly,
+            }.stateIn(
+                scope = CoroutineScope(Dispatchers.Default),
+                started = sharingStarted,
                 initialValue = initialState
             )
     }
 
     private val syncMutex = Mutex()
-    suspend fun sendMutexChannelItem(state: CoroutineActivity.State): ChannelResult<Unit> {
+    suspend fun sendMutexChannelItem(state: State): ChannelResult<Unit> {
         val mutexResult = syncMutex.withLock {
             val result = channelItem.trySend(state)
 
@@ -58,7 +60,7 @@ class CoroutineViewModel(
 
     private val syncObject = Any()
     @Synchronized
-    fun sendChannelItem(state: CoroutineActivity.State): ChannelResult<Unit> {
+    fun sendChannelItem(state: State): ChannelResult<Unit> {
         val result = synchronized(syncObject) {
             return@synchronized channelItem.trySend(state)
         }
