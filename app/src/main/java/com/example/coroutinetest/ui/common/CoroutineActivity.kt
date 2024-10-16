@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.zip
@@ -97,6 +98,9 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
         }
         findViewById<Button>(R.id.btTestFlowTransformLatest).setOnClickListener {
             testFlowTransformLatest()
+        }
+        findViewById<Button>(R.id.btTestFlowScan).setOnClickListener {
+            testFlowScan()
         }
     }
 
@@ -280,6 +284,20 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
                     "testErrorAsync createState = $createState, isSuccess = ${result.isSuccess}"
                 )
             }.work()
+    }
+
+    /**
+     * RunningFold와 같은 기능(이름만 다름)
+     * https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/scan.html
+     */
+    private fun testFlowScan() {
+        CoroutineScope(defaultDispatcher).launch {
+            flowOf(1, 2, 3)
+                .scan(emptyList<Int>()) { acc, value ->
+                    Log.d(TAG, "testFlowScan acc = $acc, value = $value")
+                    acc + value
+                }.toList()
+        }
     }
 
     private val flow1 = flowOf<Char>('a', 'b', 'c', 'd', 'e').onEach { delay(400) }

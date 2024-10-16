@@ -55,6 +55,12 @@
             android:text="테스트 FlowRunningFold" />
 
         <Button
+            android:id="@+id/btTestFlowScan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="테스트 FlowScan" />
+
+        <Button
             android:id="@+id/btTestFlowMerge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
