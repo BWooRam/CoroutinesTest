@@ -376,10 +376,6 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
         }
     }
 
-    /**
-     * Flow에서 값이 방출할때마다 이벤트 발생(원래 흐름이 새 값을 방출하면 transform 블록이 취소됨)
-     *
-     */
     private fun testFlowBuffer() {
         CoroutineScope(defaultDispatcher).launch {
             flowOf("A", "B", "C")
