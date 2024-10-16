@@ -10,6 +10,7 @@ import com.example.coroutinetest.data.State
 import com.example.coroutinetest.worker.WorkerImp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -28,6 +29,29 @@ class RestartStateFlowActivity : AppCompatActivity(R.layout.activity_restart) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        CoroutineScope(defaultDispatcher).launch {
+            viewModel.state.getSharingRestartable().getSubscriptionCountFlow().collect { count ->
+                Log.d(TAG, "collect getSubscriptionCountFlow count= $count")
+            }
+        }
+
+        CoroutineScope(defaultDispatcher).launch {
+            viewModel.state.getSharingRestartable().getRestartFlow().collect { sharingCommand ->
+                Log.d(TAG, "collect getRestartFlow sharingCommand= $sharingCommand")
+            }
+        }
+
+        CoroutineScope(defaultDispatcher).launch {
+            viewModel.state.getSharingRestartable().getSharingStartedFlow().collect { sharingCommand ->
+                Log.d(TAG, "collect getSharingStartedFlow sharingCommand = $sharingCommand")
+            }
+        }
+
+        CoroutineScope(defaultDispatcher).launch {
+            viewModel.state.getSharingRestartable().getMargeFlow().collect { sharingCommand ->
+                Log.d(TAG, "collect getMargeFlow sharingCommand = $sharingCommand")
+            }
+        }
 
         CoroutineScope(defaultDispatcher).launch {
             viewModel.state.collect { state ->
@@ -42,10 +66,24 @@ class RestartStateFlowActivity : AppCompatActivity(R.layout.activity_restart) {
         findViewById<Button>(R.id.btRestart).setOnClickListener {
             testRestart()
         }
+
+        findViewById<Button>(R.id.btSubscriptionStart).setOnClickListener {
+            testSubscriptionStart()
+        }
     }
 
     private fun testRestart() {
         viewModel.state.restart()
+    }
+
+    private fun testSubscriptionStart(){
+        for(index in 0 .. 5){
+            CoroutineScope(defaultDispatcher).launch {
+                viewModel.state.collect { state ->
+                    Log.d(TAG, "collect index = $index state = $state")
+                }
+            }
+        }
     }
 
     private fun testFlowRunningFold() {
@@ -66,7 +104,10 @@ class RestartStateFlowActivity : AppCompatActivity(R.layout.activity_restart) {
 
                 CoroutineScope(ioDispatcher).launch {
                     val result = viewModel.sendMutexChannelItem(State(randomIsLoading, data))
-                    Log.d(TAG, "testFlowRunningFold createState = $createState, isSuccess = ${result.isSuccess}")
+                    Log.d(
+                        TAG,
+                        "testFlowRunningFold createState = $createState, isSuccess = ${result.isSuccess}"
+                    )
                 }
             }.work()
     }

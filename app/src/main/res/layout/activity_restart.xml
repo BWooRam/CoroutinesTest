@@ -19,6 +19,12 @@
             android:text="테스트 WorkStart" />
 
         <Button
+            android:id="@+id/btSubscriptionStart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="테스트 SubscriptionStart" />
+
+        <Button
             android:id="@+id/btRestart"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

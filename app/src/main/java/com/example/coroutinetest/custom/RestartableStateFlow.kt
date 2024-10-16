@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.stateIn
 
 interface RestartableStateFlow<out T> : StateFlow<T> {
     fun restart()
+    fun getSharingRestartable(): SharingRestartable
 }
 
 fun <T> Flow<T>.restartableStateIn(
@@ -15,7 +16,10 @@ fun <T> Flow<T>.restartableStateIn(
 ): RestartableStateFlow<T> {
     val sharingRestartable = started.makeRestartable()
     val stateFlow = stateIn(scope, sharingRestartable, initialValue)
-    return object : RestartableStateFlow<T>,StateFlow<T> by stateFlow {
+    return object : RestartableStateFlow<T>, StateFlow<T> by stateFlow {
         override fun restart() = sharingRestartable.restart()
+        override fun getSharingRestartable(): SharingRestartable {
+            return sharingRestartable
+        }
     }
 }
