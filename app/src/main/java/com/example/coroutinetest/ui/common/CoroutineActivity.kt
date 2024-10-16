@@ -7,18 +7,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.coroutinetest.R
 import com.example.coroutinetest.data.State
-import com.example.coroutinetest.data.User
 import com.example.coroutinetest.worker.WorkerImp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.SharingCommand
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -93,6 +94,9 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
         }
         findViewById<Button>(R.id.btTestFlowCombine).setOnClickListener {
             testFlowCombine()
+        }
+        findViewById<Button>(R.id.btTestFlowTransformLatest).setOnClickListener {
+            testFlowTransformLatest()
         }
     }
 
@@ -309,6 +313,29 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
                 return@combine t1 + t2.code
             }.collect { value ->
                 Log.d(TAG, "testFlowCombine value = $value")
+            }
+        }
+    }
+
+    /**
+     * Flow에서 값이 방출할때마다 이벤트 발생(원래 흐름이 새 값을 방출하면 transform 블록이 취소됨)
+     *
+     */
+    private fun testFlowTransformLatest() {
+        CoroutineScope(defaultDispatcher).launch {
+            flow<String> {
+                emit("a")
+                delay(100)
+                emit("b")
+            }.transformLatest { value ->
+                Log.d(TAG, "testFlowTransformLatest transformLatest value = $value")
+                emit(value)
+                delay(200)
+                emit(value + "_last")
+            }.catch { error ->
+                Log.d(TAG, "testFlowTransformLatest collect error = $error")
+            }.collect { value ->
+                Log.d(TAG, "testFlowTransformLatest collect value = $value")
             }
         }
     }
