@@ -83,5 +83,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="테스트 FlowTransformLatest" />
+
+        <Button
+            android:id="@+id/btTestFlowBuffer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="테스트 FlowBuffer" />
     </LinearLayout>
 </ScrollView>

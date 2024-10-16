@@ -11,13 +11,17 @@ import com.example.coroutinetest.worker.WorkerImp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.transformLatest
@@ -41,8 +45,19 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        CoroutineScope(defaultDispatcher).launch {
+        CoroutineScope(ioDispatcher).launch {
+            viewModel.channelItem.consumeEach { state ->
+                Log.d(TAG, "channelItem viewModel state = $state")
+            }
+        }
 
+        CoroutineScope(defaultDispatcher).launch {
+            viewModel.channelItem.receiveAsFlow().collect { state ->
+                Log.d(TAG, "channelItem receiveAsFlow viewModel state = $state")
+            }
+        }
+
+        CoroutineScope(defaultDispatcher).launch {
             viewModel.state.collect { state ->
                 Log.d(TAG, "collect1 viewModel state = $state")
             }
@@ -101,6 +116,9 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
         }
         findViewById<Button>(R.id.btTestFlowScan).setOnClickListener {
             testFlowScan()
+        }
+        findViewById<Button>(R.id.btTestFlowBuffer).setOnClickListener {
+            testFlowBuffer()
         }
     }
 
@@ -269,19 +287,19 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
                 val createState = State(randomIsLoading, data)
                 //방법 1
                 /*val result = viewModel.sendChannelItem(State(randomIsLoading, data))
-                Log.d(TAG, "testErrorAsync createState = $createState, isSuccess = ${result.isSuccess}")*/
+                Log.d(TAG, "testFlowRunningFold createState = $createState, isSuccess = ${result.isSuccess}")*/
 
                 //방법 2
                 /*CoroutineScope(ioDispatcher).launch {
                     val result = viewModel.sendMutexChannelItem(State(randomIsLoading, data))
-                    Log.d(TAG, "testErrorAsync createState = $createState, isSuccess = ${result.isSuccess}")
+                    Log.d(TAG, "testFlowRunningFold createState = $createState, isSuccess = ${result.isSuccess}")
                 }*/
 
                 //방법 3
                 val result = viewModel.channelItem.trySend(State(randomIsLoading, data))
                 Log.d(
                     TAG,
-                    "testErrorAsync createState = $createState, isSuccess = ${result.isSuccess}"
+                    "testFlowRunningFold createState = $createState, isSuccess = ${result.isSuccess}"
                 )
             }.work()
     }
@@ -355,6 +373,31 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
             }.collect { value ->
                 Log.d(TAG, "testFlowTransformLatest collect value = $value")
             }
+        }
+    }
+
+    /**
+     * Flow에서 값이 방출할때마다 이벤트 발생(원래 흐름이 새 값을 방출하면 transform 블록이 취소됨)
+     *
+     */
+    private fun testFlowBuffer() {
+        CoroutineScope(defaultDispatcher).launch {
+            flowOf("A", "B", "C")
+                .onEach  {
+                    Log.d(TAG, "testFlowBuffer onEach 1$it")
+                }
+                .collect {
+                    Log.d(TAG, "testFlowBuffer onEach 2$it")
+                }
+
+            flowOf("A", "B", "C")
+                .onEach  {
+                    Log.d(TAG, "testFlowBuffer buffer onEach 1$it")
+                }
+                .buffer(capacity = 2, BufferOverflow.DROP_LATEST)
+                .collect {
+                    Log.d(TAG, "testFlowBuffer buffer onEach 2$it")
+                }
         }
     }
 }
