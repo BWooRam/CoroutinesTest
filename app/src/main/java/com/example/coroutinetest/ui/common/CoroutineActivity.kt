@@ -10,7 +10,9 @@ import com.example.coroutinetest.data.State
 import com.example.coroutinetest.worker.WorkerImp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
@@ -63,7 +65,7 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
             }
         }
 
-        CoroutineScope(defaultDispatcher).launch {
+/*        CoroutineScope(defaultDispatcher).launch {
             viewModel.state.collect { state ->
                 Log.d(TAG, "collect2 viewModel state = $state")
             }
@@ -79,7 +81,7 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
             viewModel.state.collect { state ->
                 Log.d(TAG, "collect4 viewModel state = $state")
             }
-        }
+        }*/
 
         findViewById<Button>(R.id.btLaunch).setOnClickListener {
             testLaunch()
@@ -98,6 +100,9 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
         }
         findViewById<Button>(R.id.btErrorAsync).setOnClickListener {
             testErrorAsync()
+        }
+        findViewById<Button>(R.id.btSupervisorJobError).setOnClickListener {
+            testSupervisorJobError()
         }
         findViewById<Button>(R.id.btTestFlowRunningFold).setOnClickListener {
             testFlowRunningFold()
@@ -257,6 +262,28 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
         }
     }
 
+    /**
+     *
+     *
+     */
+    private fun testSupervisorJobError() {
+        val supervisorScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        supervisorScope.launch {
+            supervisorScope.launch {
+                Log.d(TAG, "job1 success = {\"job1 Complete\"}")
+            }
+            supervisorScope.launch {
+                throw Exception()
+            }
+            supervisorScope.launch {
+                Log.d(TAG, "job3 success = {\"job3 Complete\"}")
+            }
+            supervisorScope.launch {
+                Log.d(TAG, "job4 success = {\"job4 Complete\"}")
+            }
+        }
+    }
+
     private fun testFlowRunningFold() {
         /*CoroutineScope(defaultDispatcher).launch {
             val randomIsLoading = Random.nextBoolean()
@@ -272,7 +299,7 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
         }*/
 
         worker
-            .many(3)
+            .many(10)
             .interval(1000)
             .job {
                 val randomIsLoading = Random.nextBoolean()
