@@ -263,7 +263,8 @@ class CoroutineActivity : AppCompatActivity(R.layout.activity_coroutine) {
     }
 
     /**
-     *
+     * 에러 전파가 부모까지 되지않고 그아래로만 전파해서
+     * 자식코루틴만을 취소시킵니다.
      *
      */
     private fun testSupervisorJobError() {
